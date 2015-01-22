@@ -122,13 +122,26 @@ func hashSha1(input string) string {
 	return fmt.Sprintf("%x", h.Sum(nil))
 }
 
-func marshalJson(input interface{}) (string, error) {
+func marshalJsonInternal(input interface{}, prettify bool) (string, error) {
 	var buf bytes.Buffer
 	enc := json.NewEncoder(&buf)
 	if err := enc.Encode(input); err != nil {
 		return "", err
 	}
+	if prettify {
+		var out bytes.Buffer
+		err := json.Indent(&out, buf.Bytes(), "", "    ")
+		return out.String(), err
+	}
 	return strings.TrimSuffix(buf.String(), "\n"), nil
+}
+
+func marshalJson(input interface{}) (string, error) {
+	return marshalJsonInternal(input, false)
+}
+
+func marshalJsonPretty(input interface{}) (string, error) {
+	return marshalJsonInternal(input, true)
 }
 
 // arrayFirst returns first item in the array or nil if the
@@ -198,6 +211,23 @@ func trimSuffix(suffix, s string) string {
 	return strings.TrimSuffix(s, suffix)
 }
 
+func stringHead(s string, length int) string {
+	if len(s) <= length {
+		return s
+	}
+	return s[:length]
+}
+
+func stringTail(s string, length int) string {
+	if len(s) <= length {
+		return ""
+	}
+	return s[len(s)-length:]
+}
+
+func hostEnviron(envKey string) string {
+	return os.Getenv(envKey)
+}
 func generateFile(config Config, containers Context) bool {
 	templatePath := config.Template
 	tmpl, err := template.New(filepath.Base(templatePath)).Funcs(template.FuncMap{
@@ -214,6 +244,7 @@ func generateFile(config Config, containers Context) bool {
 		"hasPrefix":    hasPrefix,
 		"hasSuffix":    hasSuffix,
 		"json":         marshalJson,
+		"jsonPretty":   marshalJsonPretty,
 		"keys":         keys,
 		"last":         arrayLast,
 		"replace":      strings.Replace,
@@ -221,6 +252,9 @@ func generateFile(config Config, containers Context) bool {
 		"split":        strings.Split,
 		"trimPrefix":   trimPrefix,
 		"trimSuffix":   trimSuffix,
+		"stringHead":   stringHead,
+		"stringTail":   stringTail,
+		"hostEnviron":  hostEnviron,
 	}).ParseFiles(templatePath)
 	if err != nil {
 		log.Fatalf("unable to parse template: %s", err)
