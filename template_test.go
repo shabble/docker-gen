@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"os"
 	"reflect"
 	"testing"
 )
@@ -320,5 +321,24 @@ func TestArrayClosestSubstring(t *testing.T) {
 func TestArrayClosestNoMatch(t *testing.T) {
 	if arrayClosest([]string{"foo.fo.com", "bip.com"}, "foo.bar.com") != "" {
 		t.Fatal("Expected ''")
+	}
+}
+
+func TestHostEnviron(t *testing.T) {
+	envKey := "BIBBLE"
+	envVal := "I AM A WOMBAT"
+	// check it's empty before we set it
+	retEnvVal := hostEnviron(envKey)
+	if retEnvVal != "" {
+		t.Fatal("Expected %s='', got %s=%s", envKey, envVal, envKey, retEnvVal)
+	}
+	// set it
+	if err := os.Setenv(envKey, envVal); err != nil {
+		t.Fatal("Unable to set test env var '%s', err=%v", envKey, err)
+	}
+	// confirm it's fetched correctly
+	retEnvVal = hostEnviron(envKey)
+	if retEnvVal != envVal {
+		t.Fatal("Expected %s=%s, got %s=%s", envKey, envVal, envKey, retEnvVal)
 	}
 }
