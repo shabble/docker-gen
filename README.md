@@ -99,6 +99,8 @@ Usage: docker-gen [-config file] [-watch=false] [-notify="restart xyz"] [-notify
 
 If no `<dest>` file is specified, the output is sent to stdout.  Mainly useful for debugging.
 
+`docker-gen <(echo "{{ jsonPretty . }}") | less` is a convenient way to view the context that would be passed to your template.
+
 ===
 
 ### Templating
@@ -122,6 +124,7 @@ Within those templates, the object emitted by docker-gen will have [this structu
 * *`hasPrefix $prefix $string`*: Returns whether `$prefix` is a prefix of `$string`.
 * *`hasSuffix $suffix $string`*: Returns whether `$suffix` is a suffix of `$string`.
 * *`json $value`*: Returns the JSON representation of `$value` as a `string`.
+* *`jsonPretty $value`*: Returns a pretty-printed JSON representation of `$value` as a `string`, useful mostly for debugging.
 * *`keys $map`*: Returns the keys from `$map`. If `$map` is `nil`, a `nil` is returned. If `$map` is not a `map`, an error will be thrown.
 * *`last $array`*: Returns the last value of an array.
 * *`replace $string $old $new $count`*: Replaces up to `$count` occurences of `$old` with `$new` in `$string`. Alias for [`strings.Replace`](http://golang.org/pkg/strings/#Replace)
@@ -129,6 +132,11 @@ Within those templates, the object emitted by docker-gen will have [this structu
 * *`split $string $sep`*: Splits `$string` into a slice of substrings delimited by `$sep`. Alias for [`strings.Split`](http://golang.org/pkg/strings/#Split)
 * *`trimPrefix $prefix $string`*: If `$prefix` is a prefix of `$string`, return `$string` with `$prefix` trimmed from the beginning. Otherwise, return `$string` unchanged.
 * *`trimSuffix $suffix $string`*: If `$suffix` is a suffix of `$string`, return `$string` with `$suffix` trimmed from the end. Otherwise, return `$string` unchanged.
+* *`stringHead $string $len`*: returns a string containing the first `$len` chars of `$string`, or the entire string if `$len > len($string)`.
+* *`stringTail $string $len`*: returns a string containing the last `$len` chars of `$string`, or the entire string if `$len > len($string)`.
+* *`hostEnviron $key`*: returns a string containing the value of the environment variable referenced by `$key`, or the empty string `""` if the variable does not exist.
+
+
 
 ===
 
