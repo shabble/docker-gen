@@ -194,6 +194,28 @@ func TestTrimSuffix(t *testing.T) {
 	}
 }
 
+func TestStringHead(t *testing.T) {
+	const prefix = "tcp://"
+	const prefix_len = len("tcp://")
+	const str = "tcp://127.0.0.1:2375"
+	strHead := stringHead(str, prefix_len)
+	if strHead != prefix {
+		t.Fatalf("expected first %d chars of %s to be %s, got '%s'",
+			prefix_len, str, prefix, strHead)
+	}
+}
+
+func TestStringTail(t *testing.T) {
+	const suffix = "hats"
+	const suffix_len = len(suffix)
+	const str = "catscatscatsinhats"
+	strTail := stringTail(str, suffix_len)
+	if strTail != suffix {
+		t.Fatalf("expected last %d chars of %s to be %s, got '%s'",
+			suffix_len, str, suffix, strTail)
+	}
+}
+
 func TestDict(t *testing.T) {
 	containers := []*RuntimeContainer{
 		&RuntimeContainer{
@@ -234,7 +256,9 @@ func TestSha1(t *testing.T) {
 	}
 }
 
-func TestJson(t *testing.T) {
+type marshalFunc func(interface{}) (string, error)
+
+func _TestJsonInternal(t *testing.T, intFunc marshalFunc) {
 	containers := []*RuntimeContainer{
 		&RuntimeContainer{
 			Env: map[string]string{
@@ -255,7 +279,7 @@ func TestJson(t *testing.T) {
 			ID: "3",
 		},
 	}
-	output, err := marshalJson(containers)
+	output, err := intFunc(containers)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -272,6 +296,13 @@ func TestJson(t *testing.T) {
 	if len(decoded) != len(containers) {
 		t.Fatal("Incorrect unmarshaled container count. Expected %d, got %d.", len(containers), len(decoded))
 	}
+}
+
+func TestPrettyJson(t *testing.T) {
+	_TestJsonInternal(t, marshalJsonPretty)
+}
+func TestJson(t *testing.T) {
+	_TestJsonInternal(t, marshalJson)
 }
 
 func TestArrayClosestExact(t *testing.T) {
